@@ -15,21 +15,21 @@ class Preview extends Component {
             <div className="grid md:grid-cols-2">
               <div className="pr-5">
                 <div className="bg-white">
-                  <div class="overflow-hidden shadow-lg">
+                  <div className="overflow-hidden shadow-lg">
                     <Image
-                      class="w-full"
+                      className="w-full"
                       src={NFTThree}
                       alt="Sunset in the mountains"
                     />
-                    <div class="px-6 py-4">
-                      <div class="flex items-center">
+                    <div className="px-6 py-4">
+                      <div className="flex items-center">
                         <div className="mr-4">
                           <Avvvatars value="Avatar" size={40} />
                         </div>
-                        <div class="text-sm">
+                        <div className="text-sm">
                           <Link href="/">
                             <a>
-                              <p class="text-gray-900 leading-none">
+                              <p className="text-gray-900 leading-none">
                                 @username
                               </p>
                             </a>
@@ -46,14 +46,14 @@ class Preview extends Component {
                     <h1 className="font-bold">Monkey Icon</h1>
                   </div>
                   <div className="basis-1/2">
-                    <div class="flex items-center flex-row">
+                    <div className="flex items-center flex-row">
                       <div className="mr-4">
                         <Avvvatars value="Avatar" size={40} />
                       </div>
-                      <div class="text-sm">
+                      <div className="text-sm">
                         <Link href="/">
                           <a>
-                            <p class="text-gray-900 leading-none">@username</p>
+                            <p className="text-gray-900 leading-none">@username</p>
                           </a>
                         </Link>
                       </div>

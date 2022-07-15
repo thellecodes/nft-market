@@ -23,8 +23,8 @@ class Footer extends Component {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:ga-5 lg:w-3/4 lg:flex lg:items-start lg:justify-end">
-              <ul class="text-sm font-medium text-gray-900">
-                <li class="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">
+              <ul className="text-sm font-medium text-gray-900">
+                <li className="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">
                   marketplace
                 </li>
                 <li className="w-full text-sm mb-3">
@@ -57,8 +57,8 @@ class Footer extends Component {
                 </li>
               </ul>
 
-              <ul class="text-sm font-medium text-gray-900">
-                <li class="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Statistic</li>
+              <ul className="text-sm font-medium text-gray-900">
+                <li className="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Statistic</li>
                 <li className="w-full text-sm mb-3">
                   <Link href="/">
                     <a className="text-black visited:text-grey-600 capitalize">
@@ -75,8 +75,8 @@ class Footer extends Component {
                 </li>
               </ul>
 
-              <ul class="text-sm font-medium text-gray-900">
-                <li class="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Resources</li>
+              <ul className="text-sm font-medium text-gray-900">
+                <li className="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Resources</li>
                 <li className="w-full text-sm mb-3">
                   <Link href="/">
                     <a className="text-black visited:text-grey-600 capitalize">
@@ -107,8 +107,8 @@ class Footer extends Component {
                 </li>
               </ul>
 
-              <ul class="text-sm font-medium text-gray-900">
-                <li class="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Company</li>
+              <ul className="text-sm font-medium text-gray-900">
+                <li className="w-full py-2 mb-5 text-4xl capitalize md:text-3xl">Company</li>
                 <li className="w-full text-sm mb-3">
                   <Link href="/">
                     <a className="text-black visited:text-grey-600 capitalize">

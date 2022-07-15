@@ -12,12 +12,12 @@ class Marketplace extends Component {
             <div className="w-full md:flex items-center">
               <div className="w-full font-bold md:w-1/4 mb-2">Marketplace</div>
               <div className="w-full md:w-3/4">
-                <label class="relative block">
-                  <span class="sr-only">Search</span>
-                  <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                <htmlFor  className="relative block">
+                  <span className="sr-only">Search</span>
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6"
+                      className="h-6 w-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -31,12 +31,12 @@ class Marketplace extends Component {
                     </svg>
                   </span>
                   <input
-                    class="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                    className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
                     placeholder="Search for anything..."
                     type="text"
                     name="search"
                   />
-                </label>
+                </htmlFor>
               </div>
             </div>
 
@@ -58,7 +58,7 @@ class Marketplace extends Component {
 
                   <Link href="/bid">
                     <a>
-                      <button class="bg-gray-500 block w-full mt-5 hover:bg-gray-400 text-white font-bold py-1 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
+                      <button className="bg-gray-500 block w-full mt-5 hover:bg-gray-400 text-white font-bold py-1 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
                         Place a Bid
                       </button>
                     </a>

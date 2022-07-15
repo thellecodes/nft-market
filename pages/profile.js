@@ -20,12 +20,12 @@ class Profile extends Component {
 
                 <div className="grid md:grid-cols-2 gap-5">
                   <div className="grid pr-5">
-                    <div class="bg-white ">
+                    <div className="bg-white ">
                       <img
                         src={
                           "https://images.unsplash.com/photo-1554629947-334ff61d85dc?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1024&h=1280&q=80"
                         }
-                        class="object-scale-down h-40 w-96"
+                        className="object-scale-down h-40 w-96"
                         alt=""
                       />
                     </div>
@@ -34,14 +34,14 @@ class Profile extends Component {
 
                   <div className="pl-5">
                     <div>
-                      <label
-                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                      <htmlFor 
+                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
                         for="user_avatar"
                       >
                         Upload file
-                      </label>
+                      </htmlFor>
                       <input
-                        class="block w-full text-sm text-gray-900 border py-3 px-4 border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                        className="block w-full text-sm text-gray-900 border py-3 px-4 border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                         aria-describedby="user_avatar_help"
                         id="user_avatar"
                         type="file"
@@ -55,39 +55,39 @@ class Profile extends Component {
                     <h2 className="font-bold text-2xl">Enter Your details</h2>
                   </div>
                   <div>
-                    <div class="mb-6">
-                      <label
+                    <div className="mb-6">
+                      <htmlFor 
                         for="email"
-                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
                       >
                         Name
-                      </label>
+                      </htmlFor>
                       <input
                         type="email"
                         id="email"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         placeholder="Your full name"
                         required
                       />
                     </div>
-                    <div class="mb-6">
-                      <label
+                    <div className="mb-6">
+                      <htmlFor 
                         for="password"
-                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
                       >
                         Username
-                      </label>
+                      </htmlFor>
                       <input
                         type="password"
                         id="password"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
 
                     <button
                       type="submit"
-                      class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                      className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
                     >
                       Submit
                     </button>

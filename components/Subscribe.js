@@ -15,7 +15,7 @@ class Subscribe extends Component {
             <div className="pt-4 flex justify-center items-center md:justify-end">
               <Link href="https://youtube.com/thellecodes">
                 <a>
-                  <button class="capitalize bg-white hover:bg-white-400 text-grey font-bold py-2 px-4 border-b-4 border-white-700 hover:border-white-500">
+                  <button className="capitalize bg-white hover:bg-white-400 text-grey font-bold py-2 px-4 border-b-4 border-white-700 hover:border-white-500">
                     thellecodes
                   </button>
                 </a>

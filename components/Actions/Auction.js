@@ -7,14 +7,14 @@ const Auction = () => {
   return (
     <div className="flex bg-white mb-5 p-2 rounded my-2">
       <div className="basis-1/2">
-        <div class="flex items-center flex-row">
+        <div className="flex items-center flex-row">
           <div className="mr-4">
             <Avvvatars value="Avatar" size={40} />
           </div>
-          <div class="text-sm">
+          <div className="text-sm">
             <Link href="/">
               <a>
-                <p class="text-gray-900 leading-none">@username</p>
+                <p className="text-gray-900 leading-none">@username</p>
               </a>
             </Link>
           </div>

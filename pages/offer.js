@@ -47,7 +47,7 @@ class Offer extends Component {
                   </div>
 
                   <button
-                    class="bg-gray-800 block w-full mt-5 hover:bg-gray-500 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded
+                    className="bg-gray-800 block w-full mt-5 hover:bg-gray-500 text-white font-bold py-2 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded
                             text-xl md:text-2xl capitalize"
                   >
                     Must be at least 3 ETH
@@ -56,21 +56,21 @@ class Offer extends Component {
               </div>
               <div className="w-full md:w-1/3">
                 <div className="bg-white px-5 py-20">
-                  <div class="overflow-hidden shadow-lg">
+                  <div className="overflow-hidden shadow-lg">
                     <Image
-                      class="w-full"
+                      className="w-full"
                       src={NFTThree}
                       alt="Sunset in the mountains"
                     />
-                    <div class="px-6 py-4">
-                      <div class="flex items-center">
+                    <div className="px-6 py-4">
+                      <div className="flex items-center">
                         <div className="mr-4">
                           <Avvvatars value="Avatar" size={40} />
                         </div>
-                        <div class="text-sm">
+                        <div className="text-sm">
                           <Link href="/">
                             <a>
-                              <p class="text-gray-900 leading-none">
+                              <p className="text-gray-900 leading-none">
                                 @username
                               </p>
                             </a>

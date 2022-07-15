@@ -98,7 +98,7 @@ class TAuction extends Component {
 
       <Link href="/bid">
         <a>
-          <button class="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+          <button className="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
             Place a Bid
           </button>
         </a>

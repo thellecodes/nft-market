@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Loading from "../components/Loading";
 import { GET_USER } from "../lib/queries";
+import NFTCollection from "../contracts/NFTCollection.json";
+import Head from "next/head";
+import axios from "axios";
 
+/* imports */
 async function isUnlocked() {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -20,16 +24,23 @@ async function isUnlocked() {
     unlocked = false;
   }
 
-  return { unlocked, accounts };
+  return { unlocked, accounts, provider };
 }
 
 const Upload = () => {
   const [loading, setLoading] = useState(true);
-  const [getUser, { data, error: loadingUserError, loading: loadingUser }] =
-    useLazyQuery(GET_USER);
+  const [
+    getUser,
+    { data: userData, error: loadingUserError, loading: loadingUser },
+  ] = useLazyQuery(GET_USER);
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [keywords, setKeyworkds] = useState("");
+  const [description, setDescription] = useState("description");
+  const [keywords, setKeywords] = useState("nft1, nft2");
+  const [website, setWebsite] = useState("www.ekolance.io");
+  const [collection, setCollection] = useState("collectionname");
+  const [videoUrl, setVideoUrl] = useState("www.youtube.com/thellecodes");
+  const [file, setFile] = useState();
+  const [fileName, setFileName] = useState("");
 
   useEffect(() => {
     new Promise(async (req, res) => {
@@ -48,16 +59,91 @@ const Upload = () => {
   }, []);
 
   useEffect(() => {
-    if (data) {
-      const { getUser } = data;
+    if (userData) {
+      const { getUser } = userData;
       setLoading(false);
     }
-  }, [data]);
+
+    console.log(userData);
+  }, [userData]);
+
+  const selectImage = (e) => {
+    setFile(e.target.files[0]);
+    setFileName(e.target.files[0].name);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    // convert file into binary
+    const data = new FormData();
+    data.append("title", file.name);
+    data.append("file", file);
+    data.append("pinataOptions", '{"cidVersion": 1}');
+    data.append(
+      "pinataMetadata",
+      '{"name": "' +
+        title +
+        '", "keyvalues": {"description": "' +
+        description +
+        '", "keywords": "' +
+        keywords +
+        '", "keywords": "' +
+        keywords +
+        '", "videoUrl": "' +
+        videoUrl +
+        '", "collection":"' +
+        collection +
+        '", "userWallet":"' +
+        userData.getUser.walletAddress +
+        '", "userId":"' +
+        userData.getUser._id +
+        '"}}'
+    );
+
+    const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+    // pass binary data into post request
+    const result = await axios.post(url, data, {
+      maxContentLength: -1,
+      headers: {
+        "Content-Type": `multipart/form-data; boundary=${data._boundary}`,
+        pinata_api_key: "ea9bd76c8a4019172406",
+        pinata_secret_api_key:
+          "3737ce0422a7b4b5092a7aacc1c826b1b2dd520c7c8484e0c16a27b7e1344ac6",
+      },
+    });
+
+    const { isDuplicate, IpfsHash, Timestamp } = result.data;
+
+    if (IpfsHash) {
+      // upload create token on block chain
+      const { provider } = await isUnlocked();
+      const signer = provider.getSigner();
+      const contractAbi = NFTCollection.abi;
+
+      const NFTInstance = new ethers.Contract(
+        process.env.contractAddress,
+        contractAbi,
+        signer
+      );
+
+      const tokenURI = `ipfs://${IpfsHash}`;
+
+      // create token
+      const newToken = NFTInstance.createToken(tokenURI);
+
+      // store data to database
+      console.log(newToken);
+    }
+  };
 
   if (loading) return <Loading />;
 
   return (
     <Layout>
+      <Head>
+        <title>Upload NFT</title>
+      </Head>
       <section id="upload" className="h-auto">
         <div className="nft-container p-5">
           <div className="upload-container">
@@ -78,158 +164,131 @@ const Upload = () => {
               </div>
             </div>
 
-            <form className="w-full  mt-10">
+            <form className="w-full  mt-10" {...{ onSubmit }}>
               <div className="flex flex-wrap mb-6 flex-col-reverse lg:flex-row">
-                <div className="w-full md:w-2/3 px-3">
+                <div className="w-full px-3">
+                  <label
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    for="file_input"
+                    htmlFor={`File Name ${fileName ? `: ${fileName}` : null}`}
+                  />
+
+                  <input
+                    className="block w-full py-3 px-4 mb-6 border"
+                    id="file_input"
+                    type="file"
+                    onChange={selectImage}
+                  />
+
                   <div className="w-full">
                     <label
                       className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-first-name"
-                    >
-                      Title*
-                    </label>
+                      htmlFor="Title *"
+                    />
 
                     <input
-                      className="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                      id="grid-first-name"
+                      className=" block w-full border rounded py-3 px-4 mb-3"
                       type="text"
-                      placeholder="Jane"
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Name of Your NFT"
+                      required
                     />
-                    <p class="text-red-500 text-xs italic">error text</p>
                   </div>
 
                   <div className="w-full mt-10">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-first-name"
-                    >
-                      Description
-                    </label>
+                      htmlFor="Description *"
+                    />
                     <p className="text-xs italic">
                       The description will be included in the item's detail page
                     </p>
 
-                    <div class="mb-6 w-full bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-                      <div class="py-2 px-4 bg-white rounded-t-lg dark:bg-gray-800">
-                        <label for="comment" class="sr-only">
-                          Awesome story about your nft art
-                        </label>
+                    <div className="mb-6 w-full bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+                      <div className="py-2 px-4 bg-white rounded-t-lg dark:bg-gray-800">
+                        <label
+                          for="comment"
+                          className="sr-only"
+                          htmlFor="Awesome story about your nft art"
+                        />
                         <textarea
                           id="comment"
-                          rows="4"
-                          className="px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
-                          placeholder="Write a comment..."
-                          required
+                          rows="2"
+                          className="px-0 w-full"
+                          placeholder="Write a Description..."
+                          onChange={(e) => setDescription(e.target.value)}
                         ></textarea>
                       </div>
                     </div>
                   </div>
 
-                  <div class="flex flex-wrap -mx-3 mb-6">
-                    <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                  <div className="flex flex-wrap -mx-3 mb-6">
+                    <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                         for="grid-first-name"
-                      >
-                        Keywords
-                      </label>
-                      <input
-                        className="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                        id="grid-first-name"
-                        type="text"
-                        placeholder="ape, nft, coding"
+                        htmlFor="Keywords"
                       />
-                      <p class="text-red-500 text-xs italic">
-                        Please fill out this field.
-                      </p>
+                      <input
+                        className=" block w-full border rounded py-3 px-4 mb-3"
+                        type="text"
+                        onChange={(e) => setKeywords(e.target.value)}
+                        placeholder="nft, ape nft"
+                      />
                     </div>
                     <div className="w-full md:w-1/2 px-3" disabled>
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                         for="grid-last-name"
+                        htmlFor="Collections"
+                      />
+                      <select
+                        disabled
+                        className="py-3 px-4 pr-8 rounded shadow leading-tight"
                       >
-                        Collection
-                      </label>
-                      <select className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500  py-3 px-4 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
                         <option>Select Collection</option>
-                        <option>Option 2</option>
                         <option>Option 3</option>
                       </select>
                     </div>
                   </div>
 
-                  <div class="flex flex-wrap -mx-3 mb-6">
-                    <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                  <div className="flex flex-wrap -mx-3 mb-6">
+                    <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                         for="grid-first-name"
-                      >
-                        Your Website
-                      </label>
-                      <input
-                        class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                        id="grid-first-name"
-                        type="text"
-                        placeholder="www.yourwebsite.com"
+                        htmlFor="Website Url"
                       />
-                      <p className="text-red-500 text-xs italic">
-                        Please fill out this field.
-                      </p>
+                      <input
+                        className=" block w-full border rounded py-3 px-4 mb-3"
+                        type="text"
+                        onChange={(e) => setWebsite(e.target.value)}
+                        placeholder="https://www.ekolance.io"
+                      />
                     </div>
+
                     <div className="w-full md:w-1/2 px-3">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                         for="grid-first-name"
-                      >
-                        Creation Video
-                      </label>
+                        htmlFor="Creation Video"
+                      />
 
                       <input
-                        className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-last-name"
+                        className=" block w-full border rounded py-3 px-4 mb-3"
                         type="text"
-                        placeholder="www.youtube.com/video-url"
+                        onChange={(e) => setVideoUrl(e.target.value)}
+                        placeholder="www.youtube.com/thellecodes"
                       />
                     </div>
                   </div>
 
                   <div className="w-full">
-                    <button class="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
+                    <button className="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
                       Go to preview
                     </button>
-                  </div>
-                </div>
-                <div className="w-full md:w-1/3 mb-10 px-5 py-6">
-                  <div class="flex justify-center items-center w-full">
-                    <label
-                      for="dropzone-file"
-                      class="flex flex-col justify-center items-center w-full h-64 bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed cursor-pointer dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-                    >
-                      <div class="flex flex-col justify-center items-center pt-5 pb-6">
-                        <svg
-                          class="mb-3 w-10 h-10 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          ></path>
-                        </svg>
-                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                          <span class="font-semibold">Click to upload</span>
-                          or drag and drop
-                        </p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                          SVG, PNG, JPG or GIF (MAX. 800x400px)
-                        </p>
-                      </div>
-                      <input id="dropzone-file" type="file" class="hidden" />
-                    </label>
                   </div>
                 </div>
               </div>

@@ -13,9 +13,18 @@ export const resolvers = {
         walletAddress,
       });
 
-      console.log(user);
+      console.log({ ...user, id: user._id });
 
-      return user;
+      return { ...user, id: user.id };
     },
-  } 
+  },
+  Mutation: {
+    createToken: async (parent, args) => {
+      const { db } = await connectToDatabase();
+
+      console.log(args);
+
+      return [];
+    },
+  },
 };

@@ -61,12 +61,12 @@ class Authors extends Component {
       </div>
 
       <div className="">
-        <div class="grid">
-          <div class="overflow-hidden h-300">
+        <div className="grid">
+          <div className="overflow-hidden h-300">
             <Image src={imageURI} alt="dasf" className="w-full h-full" />
           </div>
 
-          <div class="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="h-30 overflow-hidden">
               <Image src={imageURI} alt="dasf" className="w-full h-full" />
             </div>
