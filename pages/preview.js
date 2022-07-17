@@ -1,14 +1,63 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import Avvvatars from "avvvatars-react";
 import { Link } from "../routes";
 import Image from "next/image";
-import NFTThree from "../images/MuslimMan.png";
-import Auction from "../components/Actions/Auction";
-import AuctionWon from "../components/Actions/AuctionWon";
+import Loading from "../components/Loading";
+import { ethers } from "ethers";
+import { isUnlocked } from "../utils/helpers";
+import { Router } from "../routes";
+import Head from "next/head";
 
-class Preview extends Component {
-  render() {
-    return (
+const Preview = ({ cid, tokenId, title, description, keywords }) => {
+  const [loading, setLoading] = useState(true);
+  const [listingPrice, setListingPrice] = useState("");
+  const [alert, setAlert] = useState(false);
+  const [listing, setListing] = useState(false);
+
+  useEffect(() => {
+    if (title) setLoading(false);
+  }, [title]);
+
+  const onChange = (e) => {
+    const price = e.target.value;
+    if (Number(price)) {
+      setListingPrice(price);
+    }
+    setAlert(false);
+  };
+
+  const onList = async () => {
+    // Router.push({
+    //   pathname: "/details",
+    //   query: { id: 0 },
+    // });
+
+    if (!listingPrice) return setAlert(true);
+    setListing(true);
+    const { NFTInstance } = await isUnlocked();
+    const price = ethers.utils.parseUnits(listingPrice, 18); // convert the price to a bignumber
+    const _tokenId = parseInt(tokenId);
+
+    try {
+      const trx = await NFTInstance.listNFT(_tokenId, price, { value: price }); // list our nft
+      await trx.wait(); // wait for block confirmation
+
+      Router.push({
+        pathname: "/details",
+        query: { id: tokenId },
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  if (loading) return <Loading />;
+
+  return (
+    <>
+      <Head>
+        <title>{title} - Preview</title>
+      </Head>
       <section id="details">
         <div className="nft-container px-5 lg:px-40">
           <div className="details-container py-32">
@@ -16,9 +65,9 @@ class Preview extends Component {
               <div className="pr-5">
                 <div className="bg-white">
                   <div className="overflow-hidden shadow-lg">
-                    <Image
+                    <img
                       className="w-full"
-                      src={NFTThree}
+                      src={`https://gateway.pinata.cloud/ipfs/${cid}`}
                       alt="Sunset in the mountains"
                     />
                     <div className="px-6 py-4">
@@ -43,7 +92,7 @@ class Preview extends Component {
               <div className="p-5 bg-white rounded">
                 <div className="flex items-center mb-10">
                   <div className="basis-1/2">
-                    <h1 className="font-bold">Monkey Icon</h1>
+                    <h1 className="font-bold">{title}</h1>
                   </div>
                   <div className="basis-1/2">
                     <div className="flex items-center flex-row">
@@ -53,7 +102,9 @@ class Preview extends Component {
                       <div className="text-sm">
                         <Link href="/">
                           <a>
-                            <p className="text-gray-900 leading-none">@username</p>
+                            <p className="text-gray-900 leading-none">
+                              @username
+                            </p>
                           </a>
                         </Link>
                       </div>
@@ -64,15 +115,8 @@ class Preview extends Component {
                 <div className="mb-10">
                   <h2>Description</h2>
                   <p className="font-normal">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco l
-                    <span className="float float-right inline-block">
-                      <Link href="/">
-                        <a>Read more</a>
-                      </Link>
-                    </span>
+                    {description}
+                    <span className="float float-right inline-block"></span>
                   </p>
                 </div>
 
@@ -83,25 +127,29 @@ class Preview extends Component {
                   </div>
                   <div className="basis-1/2">
                     <h3 className="font-bold">Keywords</h3>
-                    <span className="block capitalize">#nft, #app, #b</span>
+                    <span className="block capitalize">{keywords}</span>
                   </div>
                 </div>
 
-                <div className="mb-10">
-                  <Link href="/">
-                    <a className="capitalize fonn-bold">Azure collection</a>
-                  </Link>
-                </div>
-
-                <div className="md:flex items-center">
+                <div className="flelx items-center">
                   <div className="basis-1/2 font-bold text-2xl mb-10">
-                    0.98ETH
+                    <input
+                      disabled={listing}
+                      className={`px-3 py-3 w-full border text-sm ${
+                        alert ? "border-red-700 border-2" : ""
+                      }`}
+                      placeholder="Listing price (0.98)"
+                      {...{ onChange }}
+                    />
                   </div>
                   <div className="basis-1/2 flex items-center">
-                   <div></div>
-                        <button className="bg-gray-800 font-bold text-white py-3 px-4 text-sm whitespace-nowrap">
-                            List My NFT
-                        </button>
+                    <button
+                      disabled={listing}
+                      className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
+                      onClick={onList}
+                    >
+                      List My NFT
+                    </button>
                   </div>
                 </div>
               </div>
@@ -109,33 +157,63 @@ class Preview extends Component {
 
             <div className="w-full md:grid md:grid-cols-2 mt-10">
               <div className="p-5 py-20 bg-white">
-                <h2 className="mb-5 font-bold text-2xl">Monkey Icon Details</h2>
+                <h2 className="mb-5 font-bold text-2xl">{title} Details</h2>
                 <hr />
-                <p className="mt-5 font-normal text-black">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                  irure dolor in reprehenderit in voluptate velit esse cillum
-                  dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                  cupidatat non proident, sunt in culpa qui officia deserunt
-                  mollit anim id est laborum.
-                </p>
+                <p className="mt-5 font-normal text-black">{description}</p>
               </div>
 
               <div className="pl-5">
-                <h2 className="mb-5 font-bold text-2xl">Provenance</h2>
+                {/* <h2 className="mb-5 font-bold text-2xl">Provenance</h2>
                 <hr />
                 <Auction />
                 <AuctionWon />
-                <Auction />
+                <Auction /> */}
               </div>
             </div>
           </div>
         </div>
       </section>
-    );
-  }
-}
+    </>
+  );
+};
+
+Preview.getInitialProps = async (props) => {
+  const { cid } = props.query;
+
+  let results = await fetch("http://localhost:3000/api/graphql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: `query ($cid: String!) {
+        getToken(cid: $cid) {
+          _id
+          cid
+          tokenId
+          title
+          tokenURI
+          description
+          videoUrl
+          keywords
+          website
+        }
+      }`,
+      variables: { cid },
+    }),
+  });
+
+  let { data } = await results.json();
+
+  return {
+    cid: data.getToken.cid,
+    description: data.getToken.description,
+    keywords: data.getToken.keywords,
+    title: data.getToken.title,
+    tokenId: data.getToken.tokenId,
+    tokenURI: data.getToken.tokenURI,
+    videoUrl: data.getToken.videoUrl,
+    website: data.getToken.website,
+    _id: data.getToken._id,
+  };
+};
 
 export default Preview;

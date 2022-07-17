@@ -13,18 +13,35 @@ export const resolvers = {
         walletAddress,
       });
 
-      console.log({ ...user, id: user._id });
+      // console.log({ ...user, id: user._id });
 
-      return { ...user, id: user.id };
+      return { ...user, id: user._id };
+    },
+    getToken: async (parent, args) => {
+      const { db } = await connectToDatabase();
+      const { cid } = args;
+      const token = await db.collection("tokens").findOne({ cid });
+
+      if (!token) return {};
+      return {
+        ...token,
+        id: token._cid,
+      };
+    },
+    tokens: async () => {
+      const { db } = await connectToDatabase();
+      const tokens = await db.collection("tokens").find({});
+      return await tokens.toArray();
     },
   },
   Mutation: {
     createToken: async (parent, args) => {
       const { db } = await connectToDatabase();
 
-      console.log(args);
+      const { insertedId } = await db.collection("tokens").insertOne(args);
+      const token = await db.collection("tokens").findOne({ _id: insertedId });
 
-      return [];
+      return { ...token };
     },
   },
 };

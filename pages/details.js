@@ -1,14 +1,47 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import Avvvatars from "avvvatars-react";
 import { Link } from "../routes";
 import Image from "next/image";
 import NFTThree from "../images/MuslimMan.png";
 import Auction from "../components/Actions/Auction";
 import AuctionWon from "../components/Actions/AuctionWon";
+import { isUnlocked } from "../utils/helpers";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { ethers } from "ethers";
+import { GET_TOKEN } from "../lib/queries";
+import { useLazyQuery } from "@apollo/client";
+import Loading from "../components/Loading";
+import { Router } from "../routes";
 
-class Details extends Component {
-  render() {
-    return (
+const Details = () => {
+  const router = useRouter();
+  const [getToken, { data }] = useLazyQuery(GET_TOKEN);
+
+  const getNFT = async () => {
+    const { NFTInstance } = await isUnlocked();
+
+    try {
+      const id = router.query.id.toString(); //convert id to string
+      const trx = await NFTInstance.tokenURI(id); // list our nft
+      const cid = trx.split("//")[1];
+      await getToken({ variables: { cid } }); // get token from db
+    } catch (e) {
+      Router.push({ pathname: "/upload" });
+    }
+  };
+
+  useEffect(() => {
+    if (router.query.id) getNFT();
+  }, [router.query]);
+
+  if (!data) return <Loading />;
+
+  return (
+    <>
+      <Head>
+        <title>{data ? data.getToken.title : null} - T. Marketplace</title>
+      </Head>
       <section id="details">
         <div className="nft-container px-5 lg:px-40">
           <div className="details-container py-32">
@@ -16,9 +49,11 @@ class Details extends Component {
               <div className="pr-5">
                 <div className="bg-white">
                   <div className="overflow-hidden shadow-lg">
-                    <Image
+                    <img
                       className="w-full"
-                      src={NFTThree}
+                      src={`https://gateway.pinata.cloud/ipfs/${
+                        data ? data.getToken.cid : ""
+                      }`}
                       alt="Sunset in the mountains"
                     />
                     <div className="px-6 py-4">
@@ -43,7 +78,9 @@ class Details extends Component {
               <div className="p-5 bg-white rounded">
                 <div className="flex items-center mb-10">
                   <div className="basis-1/2">
-                    <h1 className="font-bold">Monkey Icon</h1>
+                    <h1 className="font-bold">
+                      {data ? data.getToken.title : null}
+                    </h1>
                   </div>
                   <div className="basis-1/2">
                     <div className="flex items-center flex-row">
@@ -53,7 +90,9 @@ class Details extends Component {
                       <div className="text-sm">
                         <Link href="/">
                           <a>
-                            <p className="text-gray-900 leading-none">@username</p>
+                            <p className="text-gray-900 leading-none">
+                              @username
+                            </p>
                           </a>
                         </Link>
                       </div>
@@ -64,10 +103,7 @@ class Details extends Component {
                 <div className="mb-10">
                   <h2>Description</h2>
                   <p className="font-normal">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco l
+                    {data ? data.getToken.description : null}
                     <span className="float float-right inline-block">
                       <Link href="/">
                         <a>Read more</a>
@@ -89,7 +125,9 @@ class Details extends Component {
 
                 <div className="mb-10">
                   <Link href="/">
-                    <a className="capitalize fonn-bold">Azure collection</a>
+                    <a className="capitalize fonn-bold">
+                      {data ? data.getToken.collection : null}
+                    </a>
                   </Link>
                 </div>
 
@@ -122,14 +160,7 @@ class Details extends Component {
                 <h2 className="mb-5 font-bold text-2xl">Monkey Icon Details</h2>
                 <hr />
                 <p className="mt-5 font-normal text-black">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                  irure dolor in reprehenderit in voluptate velit esse cillum
-                  dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                  cupidatat non proident, sunt in culpa qui officia deserunt
-                  mollit anim id est laborum.
+                  {data ? data.getToken.description : null}
                 </p>
               </div>
 
@@ -144,8 +175,8 @@ class Details extends Component {
           </div>
         </div>
       </section>
-    );
-  }
-}
+    </>
+  );
+};
 
 export default Details;

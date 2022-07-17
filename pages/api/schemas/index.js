@@ -2,7 +2,8 @@ import { gql } from "apollo-server-micro";
 
 export const typeDefs = gql`
   type User {
-    _id: String!
+    id: String
+    _id: String
     username: String
     walletAddress: String!
     avatar_url: String
@@ -10,31 +11,34 @@ export const typeDefs = gql`
   }
 
   type Token {
-    tokenURI: String!
-    title: String!
-    description: String!
-    keywords: String!
+    _id: String
+    cid: String
+    tokenId: String
+    title: String
+    tokenURI: String
+    description: String
     videoUrl: String
-    collection: String
-    userWallet: String!
-    userId: String!
+    keywords: String
+    website: String
   }
 
   type Query {
     getUsers: [User]
     getUser(walletAddress: String!): User
+    getToken(cid: String!): Token
+    tokens: [Token]
   }
 
   type Mutation {
     createToken(
-      tokenURI: String!
-      title: String!
-      description: String!
-      keywords: String
+      cid: String
+      tokenId: String
+      title: String
+      tokenURI: String
       videoUrl: String
-      collection: String
-      userWallet: String!
-      userId: String!
-    ): [NFT]
+      keywords: String
+      website: String
+      description: String
+    ): Token
   }
 `;

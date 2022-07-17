@@ -1,49 +1,36 @@
 import Layout from "../components/Layout";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { StopIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Loading from "../components/Loading";
-import { GET_USER } from "../lib/queries";
+import { GET_USER, GET_TOKEN, CREATE_TOKEN } from "../lib/queries";
 import NFTCollection from "../contracts/NFTCollection.json";
 import Head from "next/head";
 import axios from "axios";
-
-/* imports */
-async function isUnlocked() {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-  let unlocked;
-  let accounts;
-
-  try {
-    accounts = await provider.listAccounts();
-
-    unlocked = accounts.length > 0;
-  } catch (e) {
-    unlocked = false;
-  }
-
-  return { unlocked, accounts, provider };
-}
+import { Router } from "../routes";
+import { isUnlocked } from "../utils/helpers";
 
 const Upload = () => {
-  const [loading, setLoading] = useState(true);
-  const [
-    getUser,
-    { data: userData, error: loadingUserError, loading: loadingUser },
-  ] = useLazyQuery(GET_USER);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState("new title");
+  const [uploading, setUploading] = useState(false);
   const [description, setDescription] = useState("description");
   const [keywords, setKeywords] = useState("nft1, nft2");
   const [website, setWebsite] = useState("www.ekolance.io");
-  const [collection, setCollection] = useState("collectionname");
+  const [collection] = useState("collectionname");
   const [videoUrl, setVideoUrl] = useState("www.youtube.com/thellecodes");
   const [file, setFile] = useState();
   const [fileName, setFileName] = useState("");
 
+  const [loading, setLoading] = useState(true);
+  // get user by wallet addresss
+  const [getUser, { data: userData, loading: userLoading }] =
+    useLazyQuery(GET_USER);
+  const [getToken] = useLazyQuery(GET_TOKEN);
+  const [createToken] = useMutation(CREATE_TOKEN);
+
   useEffect(() => {
-    new Promise(async (req, res) => {
+    new Promise(async () => {
       const { unlocked, accounts } = await isUnlocked();
       if (!unlocked) {
         window.location.href = "/connect";
@@ -51,7 +38,7 @@ const Upload = () => {
         // get user by wallet address
         getUser({
           variables: {
-            walletAddress: "0x6d0fa4b8efdd9cd94b5e963ae906099b36050062",
+            walletAddress: accounts[0].toLowerCase(),
           },
         });
       }
@@ -60,12 +47,9 @@ const Upload = () => {
 
   useEffect(() => {
     if (userData) {
-      const { getUser } = userData;
       setLoading(false);
     }
-
-    console.log(userData);
-  }, [userData]);
+  }, [userData, userLoading]);
 
   const selectImage = (e) => {
     setFile(e.target.files[0]);
@@ -74,6 +58,13 @@ const Upload = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+
+    // Router.pushRoute(
+    //   `/upload/${`bafkreibwqk6qvgpdba4vmgboigdyhb7bsjtnkkjyh2qctntkutu6dpw2vu`}/create`
+    // );
+
+    setUploading(true);
+    const { accounts } = await isUnlocked();
 
     // convert file into binary
     const data = new FormData();
@@ -107,33 +98,45 @@ const Upload = () => {
       maxContentLength: -1,
       headers: {
         "Content-Type": `multipart/form-data; boundary=${data._boundary}`,
-        pinata_api_key: "ea9bd76c8a4019172406",
-        pinata_secret_api_key:
-          "3737ce0422a7b4b5092a7aacc1c826b1b2dd520c7c8484e0c16a27b7e1344ac6",
+        pinata_api_key: process.env.pinata_api_key,
+        pinata_secret_api_key: process.env.pinata_secret_api_key,
       },
     });
 
-    const { isDuplicate, IpfsHash, Timestamp } = result.data;
+    const { IpfsHash } = result.data;
 
     if (IpfsHash) {
       // upload create token on block chain
-      const { provider } = await isUnlocked();
-      const signer = provider.getSigner();
-      const contractAbi = NFTCollection.abi;
+      const { NFTInstance } = await isUnlocked();
 
-      const NFTInstance = new ethers.Contract(
-        process.env.contractAddress,
-        contractAbi,
-        signer
-      );
-
+      // contruct ipfs token uri
       const tokenURI = `ipfs://${IpfsHash}`;
 
       // create token
-      const newToken = NFTInstance.createToken(tokenURI);
+      const trx = await NFTInstance.createToken(tokenURI);
+      await trx.wait();
 
-      // store data to database
-      console.log(newToken);
+      const myTokens = await NFTInstance.myTokens(accounts[0]);
+      const getTokenURI = myTokens["tokenURI"].indexOf(tokenURI);
+
+      const _tokenId = myTokens["userTokens"][getTokenURI];
+      const tokenId = ethers.utils.formatEther(_tokenId) * 10 ** 18;
+
+      // create a new token with cid
+      await createToken({
+        variables: {
+          cid: IpfsHash,
+          title,
+          tokenURI,
+          videoUrl,
+          keywords,
+          website,
+          description,
+          tokenId: tokenId.toString(),
+        },
+      });
+
+      Router.pushRoute(`/upload/${IpfsHash}/create`);
     }
   };
 
@@ -192,7 +195,6 @@ const Upload = () => {
                       type="text"
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Name of Your NFT"
-                      required
                     />
                   </div>
 
@@ -286,8 +288,29 @@ const Upload = () => {
                   </div>
 
                   <div className="w-full">
-                    <button className="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
-                      Go to preview
+                    <button
+                      disabled={uploading}
+                      className="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                    >
+                      {uploading ? (
+                        <svg
+                          role="status"
+                          className="inline mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600"
+                          viewBox="0 0 100 101"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                            fill="currentColor"
+                          />
+                          <path
+                            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                            fill="#1C64F2"
+                          />
+                        </svg>
+                      ) : null}
+                      {uploading ? "Uploading" : "Go to preiview"}
                     </button>
                   </div>
                 </div>
@@ -298,10 +321,6 @@ const Upload = () => {
       </section>
     </Layout>
   );
-};
-
-Upload.getInitialProps = async ({ req }) => {
-  return {};
 };
 
 export default Upload;

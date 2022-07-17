@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "description": "NFT marketplace for minting, listing, buying and selling",
   "main": "server.js",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
+  "scripts": {},
   "author": "Samuel Anthony",
   "license": "MIT",
   "devDependencies": {
