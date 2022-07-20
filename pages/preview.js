@@ -11,8 +11,10 @@ import Head from "next/head";
 const Preview = ({ cid, tokenId, title, description, keywords }) => {
   const [loading, setLoading] = useState(true);
   const [listingPrice, setListingPrice] = useState("");
-  const [alert, setAlert] = useState(false);
+  const [listAlert, setListAlert] = useState(false);
+  const [auctionAlert, setAuctionAlert] = useState(false);
   const [listing, setListing] = useState(false);
+  const [auctionPrice, setAuctionPrice] = useState(false);
 
   useEffect(() => {
     if (title) setLoading(false);
@@ -20,10 +22,18 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
 
   const onChange = (e) => {
     const price = e.target.value;
-    if (Number(price)) {
+    if (!Number(price)) return;
       setListingPrice(price);
-    }
-    setAlert(false);
+    
+    setListAlert(false);
+  };
+
+  const onSetAuctionPrice = (e) => {
+    const price = e.target.value;
+    if (!Number(price)) return
+      setAuctionPrice(price);
+  
+    setAuctionAlert(false);
   };
 
   const onList = async () => {
@@ -32,7 +42,7 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
     //   query: { id: 0 },
     // });
 
-    if (!listingPrice) return setAlert(true);
+    if (!listingPrice) return setListAlert(true);
     setListing(true);
     const { NFTInstance } = await isUnlocked();
     const price = ethers.utils.parseUnits(listingPrice, 18); // convert the price to a bignumber
@@ -46,6 +56,28 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
         pathname: "/details",
         query: { id: tokenId },
       });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const onAuction = async () => {
+    if (!auctionPrice) return setAuctionAlert(true);
+    setListing(true);
+    const { NFTInstance } = await isUnlocked();
+    const price = ethers.utils.parseUnits(auctionPrice, 18); // convert the price to a bignumber
+    const _tokenId = parseInt(tokenId);
+
+    try {
+      const trx = await NFTInstance.auctionNFT(_tokenId, price, {
+        value: price,
+      }); // list our nft
+      await trx.wait(); // wait for block confirmation
+
+      // Router.push({
+      //   pathname: "/details",
+      //   query: { id: tokenId },
+      // });
     } catch (e) {
       console.log(e);
     }
@@ -131,25 +163,50 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
                   </div>
                 </div>
 
-                <div className="flelx items-center">
-                  <div className="basis-1/2 font-bold text-2xl mb-10">
-                    <input
-                      disabled={listing}
-                      className={`px-3 py-3 w-full border text-sm ${
-                        alert ? "border-red-700 border-2" : ""
-                      }`}
-                      placeholder="Listing price (0.98)"
-                      {...{ onChange }}
-                    />
+                <div className="basis-1/2 font-bold text-2xl mb-10">
+                  <div className="flex">
+                    <div className="w-2/4">
+                      <input
+                        disabled={listing}
+                        className={`px-3 py-3 w-full border text-sm ${
+                          listAlert ? "border-red-700 border-2" : ""
+                        }`}
+                        placeholder="Listing price (0.98)"
+                        {...{ onChange }}
+                      />
+                    </div>
+
+                    <div className="w-2/4 flex justify-end">
+                      <button
+                        disabled={listing}
+                        className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
+                        onClick={onList}
+                      >
+                        List My NFT
+                      </button>
+                    </div>
                   </div>
-                  <div className="basis-1/2 flex items-center">
-                    <button
-                      disabled={listing}
-                      className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
-                      onClick={onList}
-                    >
-                      List My NFT
-                    </button>
+
+                  <div className="flex mt-6">
+                    <div className="w-2/4">
+                      <input
+                        className={`px-3 py-3 w-full border text-sm ${
+                          auctionAlert ? "border-red-700 border-2" : ""
+                        }`}
+                        placeholder="Auction Price"
+                        onChange={onSetAuctionPrice}
+                      />
+                    </div>
+
+                    <div className="w-2/4 flex justify-end">
+                      <button
+                        disabled={listing}
+                        className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
+                        onClick={onAuction}
+                      >
+                        Auction this NFT
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -19,8 +19,8 @@ export const resolvers = {
     },
     getToken: async (parent, args) => {
       const { db } = await connectToDatabase();
-      const { cid } = args;
-      const token = await db.collection("tokens").findOne({ cid });
+      const { tokenId } = args;
+      const token = await db.collection("tokens").findOne({ tokenId });
 
       if (!token) return {};
       return {

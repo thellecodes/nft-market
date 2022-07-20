@@ -25,7 +25,7 @@ export const typeDefs = gql`
   type Query {
     getUsers: [User]
     getUser(walletAddress: String!): User
-    getToken(cid: String!): Token
+    getToken(tokenId: String!): Token
     tokens: [Token]
   }
 

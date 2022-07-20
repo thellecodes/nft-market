@@ -5,10 +5,8 @@ import Image from "next/image";
 import NFTThree from "../images/MuslimMan.png";
 import Auction from "../components/Actions/Auction";
 import AuctionWon from "../components/Actions/AuctionWon";
-import { isUnlocked } from "../utils/helpers";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { ethers } from "ethers";
 import { GET_TOKEN } from "../lib/queries";
 import { useLazyQuery } from "@apollo/client";
 import Loading from "../components/Loading";
@@ -17,19 +15,21 @@ import { Router } from "../routes";
 const Details = () => {
   const router = useRouter();
   const [getToken, { data }] = useLazyQuery(GET_TOKEN);
+  const [loading, setLoading] = useState(true);
 
   const getNFT = async () => {
-    const { NFTInstance } = await isUnlocked();
-
-    try {
-      const id = router.query.id.toString(); //convert id to string
-      const trx = await NFTInstance.tokenURI(id); // list our nft
-      const cid = trx.split("//")[1];
-      await getToken({ variables: { cid } }); // get token from db
-    } catch (e) {
-      Router.push({ pathname: "/upload" });
-    }
+    const tokenId = router.query.id.toString(); //convert id to string
+    await getToken({ variables: { tokenId } }); // get token from db
   };
+
+  // handle error
+  useEffect(() => {
+    if (data && data.getToken) {
+      if (!data.getToken.title) {
+        Router.push({ pathname: "/error" });
+      }
+    }
+  }, [data]);
 
   useEffect(() => {
     if (router.query.id) getNFT();
