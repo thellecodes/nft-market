@@ -40,5 +40,9 @@ export const typeDefs = gql`
       website: String
       description: String
     ): Token
+
+    listToken(tokenId: String): Token
+
+    auctionToken(tokenId: String): Token
   }
 `;

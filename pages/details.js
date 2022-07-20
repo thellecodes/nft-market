@@ -14,28 +14,15 @@ import { Router } from "../routes";
 
 const Details = () => {
   const router = useRouter();
-  const [getToken, { data }] = useLazyQuery(GET_TOKEN);
-  const [loading, setLoading] = useState(true);
-
-  const getNFT = async () => {
-    const tokenId = router.query.id.toString(); //convert id to string
-    await getToken({ variables: { tokenId } }); // get token from db
-  };
+  const { tokenId } = router.query;
+  const [getToken, { data, loading, error }] = useLazyQuery(GET_TOKEN);
 
   // handle error
   useEffect(() => {
-    if (data && data.getToken) {
-      if (!data.getToken.title) {
-        Router.push({ pathname: "/error" });
-      }
-    }
-  }, [data]);
+    getToken({ variables: { tokenId } }); // get token from db
+  }, [tokenId]);
 
-  useEffect(() => {
-    if (router.query.id) getNFT();
-  }, [router.query]);
-
-  if (!data) return <Loading />;
+  if (!tokenId || loading) return <Loading />;
 
   return (
     <>

@@ -7,41 +7,43 @@ import { ethers } from "ethers";
 import { isUnlocked } from "../utils/helpers";
 import { Router } from "../routes";
 import Head from "next/head";
+import { AUCTION_TOKEN, GET_TOKEN, LIST_TOKEN } from "../lib/queries";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { useRouter } from "next/router";
 
-const Preview = ({ cid, tokenId, title, description, keywords }) => {
-  const [loading, setLoading] = useState(true);
+const Preview = () => {
+  const router = useRouter();
+  const { tokenId } = router.query;
   const [listingPrice, setListingPrice] = useState("");
   const [listAlert, setListAlert] = useState(false);
   const [auctionAlert, setAuctionAlert] = useState(false);
   const [listing, setListing] = useState(false);
   const [auctionPrice, setAuctionPrice] = useState(false);
+  const [getToken, { data, loading }] = useLazyQuery(GET_TOKEN);
+  const [listToken] = useMutation(LIST_TOKEN);
+  const [auctionToken] = useMutation(AUCTION_TOKEN);
 
   useEffect(() => {
-    if (title) setLoading(false);
-  }, [title]);
+    getToken({ variables: { tokenId } }); // get token from db
+  }, []);
 
   const onChange = (e) => {
     const price = e.target.value;
     if (!Number(price)) return;
-      setListingPrice(price);
-    
+    setListingPrice(price);
+
     setListAlert(false);
   };
 
   const onSetAuctionPrice = (e) => {
     const price = e.target.value;
-    if (!Number(price)) return
-      setAuctionPrice(price);
-  
+    if (!Number(price)) return;
+    setAuctionPrice(price);
+
     setAuctionAlert(false);
   };
 
   const onList = async () => {
-    // Router.push({
-    //   pathname: "/details",
-    //   query: { id: 0 },
-    // });
-
     if (!listingPrice) return setListAlert(true);
     setListing(true);
     const { NFTInstance } = await isUnlocked();
@@ -52,10 +54,9 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
       const trx = await NFTInstance.listNFT(_tokenId, price, { value: price }); // list our nft
       await trx.wait(); // wait for block confirmation
 
-      Router.push({
-        pathname: "/details",
-        query: { id: tokenId },
-      });
+      await listToken({ variables: { tokenId } }); // set listed to true
+
+      Router.push({ pathname: "/details", query: { tokenId } });
     } catch (e) {
       console.log(e);
     }
@@ -64,6 +65,7 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
   const onAuction = async () => {
     if (!auctionPrice) return setAuctionAlert(true);
     setListing(true);
+
     const { NFTInstance } = await isUnlocked();
     const price = ethers.utils.parseUnits(auctionPrice, 18); // convert the price to a bignumber
     const _tokenId = parseInt(tokenId);
@@ -73,11 +75,9 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
         value: price,
       }); // list our nft
       await trx.wait(); // wait for block confirmation
+      await auctionToken({ variables: { tokenId } }); // add to auction
 
-      // Router.push({
-      //   pathname: "/details",
-      //   query: { id: tokenId },
-      // });
+      Router.push({ pathname: "/details", query: { tokenId } });
     } catch (e) {
       console.log(e);
     }
@@ -88,7 +88,7 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
   return (
     <>
       <Head>
-        <title>{title} - Preview</title>
+        <title>{data ? data.getToken.title : null} - Preview</title>
       </Head>
       <section id="details">
         <div className="nft-container px-5 lg:px-40">
@@ -99,7 +99,9 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
                   <div className="overflow-hidden shadow-lg">
                     <img
                       className="w-full"
-                      src={`https://gateway.pinata.cloud/ipfs/${cid}`}
+                      src={`https://gateway.pinata.cloud/ipfs/${
+                        data ? data.getToken.cid : null
+                      }`}
                       alt="Sunset in the mountains"
                     />
                     <div className="px-6 py-4">
@@ -124,7 +126,9 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
               <div className="p-5 bg-white rounded">
                 <div className="flex items-center mb-10">
                   <div className="basis-1/2">
-                    <h1 className="font-bold">{title}</h1>
+                    <h1 className="font-bold">
+                      {data ? data.getToken.title : null}
+                    </h1>
                   </div>
                   <div className="basis-1/2">
                     <div className="flex items-center flex-row">
@@ -147,7 +151,7 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
                 <div className="mb-10">
                   <h2>Description</h2>
                   <p className="font-normal">
-                    {description}
+                    {data ? data.getToken.description : null}
                     <span className="float float-right inline-block"></span>
                   </p>
                 </div>
@@ -159,7 +163,9 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
                   </div>
                   <div className="basis-1/2">
                     <h3 className="font-bold">Keywords</h3>
-                    <span className="block capitalize">{keywords}</span>
+                    <span className="block capitalize">
+                      {data ? data.getToken.keywords : null}
+                    </span>
                   </div>
                 </div>
 
@@ -214,63 +220,22 @@ const Preview = ({ cid, tokenId, title, description, keywords }) => {
 
             <div className="w-full md:grid md:grid-cols-2 mt-10">
               <div className="p-5 py-20 bg-white">
-                <h2 className="mb-5 font-bold text-2xl">{title} Details</h2>
+                <h2 className="mb-5 font-bold text-2xl">
+                  {data ? data.getToken.details : null} Details
+                </h2>
                 <hr />
-                <p className="mt-5 font-normal text-black">{description}</p>
+                <p className="mt-5 font-normal text-black">
+                  {data ? data.getToken.description : null}
+                </p>
               </div>
 
-              <div className="pl-5">
-                {/* <h2 className="mb-5 font-bold text-2xl">Provenance</h2>
-                <hr />
-                <Auction />
-                <AuctionWon />
-                <Auction /> */}
-              </div>
+              <div className="pl-5"> </div>
             </div>
           </div>
         </div>
       </section>
     </>
   );
-};
-
-Preview.getInitialProps = async (props) => {
-  const { cid } = props.query;
-
-  let results = await fetch("http://localhost:3000/api/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `query ($cid: String!) {
-        getToken(cid: $cid) {
-          _id
-          cid
-          tokenId
-          title
-          tokenURI
-          description
-          videoUrl
-          keywords
-          website
-        }
-      }`,
-      variables: { cid },
-    }),
-  });
-
-  let { data } = await results.json();
-
-  return {
-    cid: data.getToken.cid,
-    description: data.getToken.description,
-    keywords: data.getToken.keywords,
-    title: data.getToken.title,
-    tokenId: data.getToken.tokenId,
-    tokenURI: data.getToken.tokenURI,
-    videoUrl: data.getToken.videoUrl,
-    website: data.getToken.website,
-    _id: data.getToken._id,
-  };
 };
 
 export default Preview;

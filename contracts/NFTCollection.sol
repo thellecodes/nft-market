@@ -13,15 +13,19 @@ contract NFTCollection is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemIds;
 
-    struct NFTItem {
-        uint itemId;
+    struct NFTInExchange {
         uint256 tokenId; // nft id
         address seller; // previous seller
         address owner; // current owner
         uint256 price; // current price value of nft
-        uint256 uploadedAt;
         uint256 lastTransactionDate;
         bool listed;
+
+        uint start_time;
+        bool inAunction;
+        uint currentHighestBid;
+        address currentHighestBidder;
+        bool offered; 
     }
 
     struct Token {
@@ -29,43 +33,27 @@ contract NFTCollection is ERC721URIStorage {
         address creator;
         string[] tokenURI;
     }
-
-    struct NFTInExchange {
-        uint tokenId;
-        address owner;
-        uint start_time;
-        bool inAunction;
-        uint currentHighestBid;
-        address currentHighestBidder;
-        bool offered;
-        uint offered_date;
-    }
-
-    mapping(uint256 => NFTItem) public idToMarketItem;
+ 
     mapping(address => Token) createdTokens;
-    mapping(uint => NFTInExchange) public Exchange;
-    mapping(uint => address) public tokenOwners;
+    mapping(uint => NFTInExchange) public Exchange; 
 
     uint256 auctionTime = 60;
 
     constructor() ERC721("NFT Collection", "NFTC") {}
 
-    function createToken(string memory _tokenURI) public returns (uint) {
+    function createToken(string memory _tokenURI) public {
         uint256 newItemId = _tokenIds.current();
 
         _safeMint(msg.sender, newItemId); // mint nft
         _setTokenURI(newItemId, _tokenURI); // set up token uri
         _tokenIds.increment();
-        setApprovalForAll(address(this), true);
 
-        // keeps track of newly created tokens buy each user
-        Token storage mintedToken = createdTokens[msg.sender];
+        setApprovalForAll(address(this), true); // give permission to contract
+
+        Token storage mintedToken = createdTokens[msg.sender]; //keeps track of each wallate tokens
         mintedToken.userTokens.push(newItemId);
         mintedToken.creator = msg.sender;
-        mintedToken.tokenURI.push(_tokenURI);
-        tokenOwners[_itemIds.current()] = msg.sender;
-
-        return newItemId;
+        mintedToken.tokenURI.push(_tokenURI); 
     }
 
     function myTokens(address _address) public view returns (Token memory) {
@@ -76,149 +64,121 @@ contract NFTCollection is ERC721URIStorage {
         uint _tokenId,
         uint256 _listingPrice // listing price
     ) public payable {
-        require(tokenOwners[_tokenId] == msg.sender, "Invalid Transaction");
+        require(ownerOf(_tokenId) == msg.sender, "Invalid Transaction");
         require(_listingPrice > 0, "Add a listing");
         require(msg.value >= _listingPrice, "You don't have enough ETH");
 
         uint256 itemId = _itemIds.current();
 
-        idToMarketItem[itemId] = NFTItem(
-            itemId,
-            _tokenId,
-            msg.sender,
-            address(0),
-            _listingPrice,
-            block.timestamp,
-            block.timestamp,
-            true
-        );
-         
-
-        _transfer(msg.sender, address(this), _tokenId);
+        NFTInExchange storage nft = Exchange[_tokenId];
+            nft.tokenId = itemId;
+            nft.seller = msg.sender;
+            nft.owner = msg.sender;
+            nft.price = _listingPrice; 
+            nft.lastTransactionDate = block.timestamp;
+            nft.listed = true;
+       
+        _transfer(msg.sender, address(this), _tokenId); // send nft to contract
         _itemIds.increment();
     }
 
     function auctionNFT(uint _tokenId, uint256 _listingPrice) public payable {
+        require(ownerOf(_tokenId) == msg.sender, "Invalid Transaction");
         require(msg.sender != address(0), "Invalid Transaction");
-        require(msg.value >= _listingPrice, "Your Balane is Too Low");
-        require(msg.sender == Exchange[_tokenId].owner, "Invalid Transaction");
-        require(idToMarketItem[_tokenId].listed != true, "This nft is in market place");
+        require(msg.value >= _listingPrice, "Your Balane is Too Low"); 
+        require(Exchange[_tokenId].listed != true, "This nft is in market place"); // checks to see nft is not listed
         
-        NFTInExchange storage nftEx = Exchange[_tokenId];
-
-        if(nftEx.offered){
-            require(address(this).balance > nftEx.currentHighestBid, "No balance found for this nft"); 
-            payable(nftEx.currentHighestBidder).transfer(nftEx.currentHighestBid);
-            nftEx.offered = false;
-        }
-         
-        Exchange[_tokenId] = NFTInExchange(
-            _tokenId,
-            msg.sender,
-            block.timestamp,
-            true,
-            _listingPrice,
-            msg.sender,
-            false,
-            0
-        );
-
+        NFTInExchange storage nft = Exchange[_tokenId];
+        nft.inAunction = true;
+        nft.tokenId = _tokenId;
+        nft.owner = msg.sender; 
+        nft.currentHighestBidder = msg.sender;
+        nft.currentHighestBid = msg.value;
+        nft.seller = msg.sender;
+        nft.price = _listingPrice;
+        nft.start_time = block.timestamp;
+    
         _transfer(msg.sender, address(this), _tokenId);
         _itemIds.increment();
     }
 
     function bidNFT(uint _tokenId, uint _bidPrice) public payable {
+        require(ownerOf(_tokenId) != msg.sender, "You own this nft");
+        NFTInExchange storage nft = Exchange[_tokenId]; // current nft
+        require(msg.sender != nft.owner, "Yo own this our nft"); 
         require(msg.sender != address(0), "Invalid Transaction");
         require(msg.value >= _bidPrice, "You Don't Have Enough Eth To Bid");
-        NFTInExchange storage nft = Exchange[_tokenId]; // current nft
-        require(nft.inAunction, "Nft is not in Aucton");
+       
+        require(nft.inAunction, "Nft is not in Aucton"); // checks to see nft is in auction
         // require(block.timestamp - nft.start_time <= auctionTime, "No longer in auction");
         require(
             msg.value >= nft.currentHighestBid,
             "Current Bid Price is Higher than your Balance"
         );
-
-        if(nft.currentHighestBidder != nft.owner && nft.offered){
+        
+        if (nft.currentHighestBidder != nft.owner) {
             require(address(this).balance > nft.currentHighestBid, "No balance found for this nft"); 
             payable(nft.currentHighestBidder).transfer(nft.currentHighestBid);
-            nft.offered = false;
-            nft.inAunction = true;
         }
-
-        if (nft.currentHighestBidder != nft.owner && nft.offered != true) {
-            require(address(this).balance > nft.currentHighestBid, "No balance found for this nft"); 
-            payable(nft.owner).transfer(nft.currentHighestBid); // pay the last highest bidder
-        }
-        
+   
         nft.currentHighestBidder = msg.sender;
         nft.currentHighestBid = msg.value;
     }
 
     function endAuction(uint _tokenId) public payable  {
+        require(ownerOf(_tokenId) != msg.sender, "Invalid Transaction"); // contract is the owner
         require(msg.sender != address(0), "Invalid Transaction"); 
         NFTInExchange storage nft = Exchange[_tokenId]; // current nft
+        require(nft.owner == msg.sender, "Invalid transaction");
         // require(block.timestamp - nft.start_time >= auctionTime, "Still in Auction");
         if (nft.currentHighestBidder != nft.owner) {
             require(address(this).balance > nft.currentHighestBid, "No balance found for this nft");
             payable(nft.owner).transfer(nft.currentHighestBid); // pay the last owner
             nft.owner = nft.currentHighestBidder;
         }
-        nft.currentHighestBid = 0; // reset the current heighest bid
-        nft.inAunction = false; // remove from auction 
-        tokenOwners[_tokenId] = nft.currentHighestBidder; // reset the token owner
+
+        nft.listed = false;
+        nft.currentHighestBid = 0; // reset the current heighest bid 
+        nft.inAunction = false; // remove from auction
+        _transfer(address(this), nft.currentHighestBidder, _tokenId);
     }
 
     function makeOffer(uint256 _tokenId, uint _offerPrice) public payable {
-        require(msg.sender != Exchange[_tokenId].owner, "You can't bid your nft");
-        require(msg.sender != idToMarketItem[_tokenId].owner, "Yo own thisour nft");
+        require(ownerOf(_tokenId) != msg.sender, "Invalid Transaction");
+        NFTInExchange storage nft = Exchange[_tokenId]; // current nft
+        require(msg.sender != nft.owner, "Yo own this our nft");
         require(msg.value >= _offerPrice, "Your balance is low");
+        require(nft.listed == true, "NFT not available for offers");
 
-        NFTInExchange storage nftEx = Exchange[_tokenId];
-        NFTItem storage nftItem = idToMarketItem[_tokenId];
-        
-        require(nftItem.listed == true, "Nft not available for offers");
-        require(nftEx.inAunction == false, "Nft not available for offers");
-
-        require(msg.value >= nftEx.currentHighestBid, "Offer Price Less than previous Bids/Offers");
-
-        if (nftEx.currentHighestBidder != nftEx.owner) {
-            require(address(this).balance > nftEx.currentHighestBid, "No balance found for this nft"); 
-            payable(nftEx.owner).transfer(nftEx.currentHighestBid); // pay the last highest bidder
+        // TODO: Check for nft in auctions
+        require(msg.value >= nft.currentHighestBid, "Offer Price Less than previous Bids/Offers");
+        if (nft.currentHighestBidder != nft.owner) {
+            require(address(this).balance > nft.currentHighestBid, "No balance found for this nft"); 
+            payable(nft.currentHighestBidder).transfer(nft.currentHighestBid); // pay the last highest bidder
         }
 
-        nftEx.offered = true;
-        nftEx.offered_date = block.timestamp;
-        nftEx.currentHighestBidder = msg.sender;
-        nftEx.currentHighestBid = msg.value;
+        nft.currentHighestBidder = msg.sender;
+        nft.currentHighestBid = msg.value;
+        nft.offered = true;
     }
 
     function endOffer(uint256 _tokenId) public payable {
-        require(msg.sender == Exchange[_tokenId].owner, "Invalid Transaction");
-        NFTInExchange storage nftEx = Exchange[_tokenId]; 
+        require(ownerOf(_tokenId) != msg.sender, "Invalid Transaction"); // contract is the owner
+        require(msg.sender != address(0), "Invalid Transaction");
+
+        NFTInExchange storage nft = Exchange[_tokenId];
+        require(nft.offered == true, "Offer not found");
+        require(nft.owner == msg.sender, "Invalid transaction");
 
         // Accpets the offer
-        if (nftEx.currentHighestBidder != nftEx.owner) {
-            require(address(this).balance > nftEx.currentHighestBid, "No balance found for this nft"); 
-            payable(nftEx.owner).transfer(nftEx.currentHighestBid); // pay the last highest bidder
+        if (nft.currentHighestBidder != nft.owner) {
+            require(address(this).balance > nft.currentHighestBid, "No balance found for this nft"); 
+            payable(nft.owner).transfer(nft.currentHighestBid); // pay the last highest bidder
         }
 
-        nftEx.offered = false;
-        nftEx.owner = nftEx.currentHighestBidder;
-        tokenOwners[_tokenId] = nftEx.currentHighestBidder; // reset the token owner
-    }
-
-    function buyNFT(uint256 itemId, address _nftContract) public payable {
-        uint price = idToMarketItem[itemId].price;
-        uint tokenId = idToMarketItem[itemId].tokenId;
-        require(
-            idToMarketItem[itemId].seller != msg.sender,
-            "You're the owner of this nft"
-        );
-        require(msg.value >= price, "Low Balance");
-
-        payable(idToMarketItem[itemId].seller).transfer(msg.value); // pay the seller
-        idToMarketItem[itemId].owner = payable(msg.sender); // update to new nft owner
-        IERC721(_nftContract).transferFrom(address(this), msg.sender, tokenId); // transfer nft to new owner
-        idToMarketItem[itemId].lastTransactionDate = block.timestamp;
+        nft.offered = false;
+        nft.listed = false;
+        nft.owner = nft.currentHighestBidder;
+         _transfer(address(this), nft.currentHighestBidder, _tokenId);
     }
 }

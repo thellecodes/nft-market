@@ -43,5 +43,34 @@ export const resolvers = {
 
       return { ...token };
     },
+
+    listToken: async (parent, args) => {
+      const { db } = await connectToDatabase();
+      console.log(args);
+
+      const res = await db
+        .collection("tokens")
+        .findOneAndUpdate(
+          { tokenId: args.tokenId },
+          { $set: { listed: true } },
+          { upsert: true, returnDocument: "after" }
+        );
+
+      return res.value;
+    },
+
+    auctionToken: async (parent, args) => {
+      const { db } = await connectToDatabase();
+
+      const res = await db
+        .collection("tokens")
+        .findOneAndUpdate(
+          { tokenId: args.tokenId },
+          { $set: { inAuction: true } },
+          { upsert: true, returnDocument: "after" }
+        );
+
+      return res.value;
+    },
   },
 };

@@ -4,7 +4,12 @@ import { StopIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Loading from "../components/Loading";
-import { GET_USER, GET_TOKEN, CREATE_TOKEN } from "../lib/queries";
+import {
+  GET_USER,
+  GET_TOKEN,
+  CREATE_TOKEN,
+  UPDATE_TOKEN,
+} from "../lib/queries";
 import NFTCollection from "../contracts/NFTCollection.json";
 import Head from "next/head";
 import axios from "axios";
@@ -26,7 +31,6 @@ const Upload = () => {
   // get user by wallet addresss
   const [getUser, { data: userData, loading: userLoading }] =
     useLazyQuery(GET_USER);
-  const [getToken] = useLazyQuery(GET_TOKEN);
   const [createToken] = useMutation(CREATE_TOKEN);
 
   useEffect(() => {
@@ -59,10 +63,8 @@ const Upload = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    // Router.pushRoute(
-    //   `/upload/${`bafkreibwqk6qvgpdba4vmgboigdyhb7bsjtnkkjyh2qctntkutu6dpw2vu`}/create`
-    // );
-
+    // Router.pushRoute(`/upload/${`4`}/create`);
+    // return;
     setUploading(true);
     const { accounts } = await isUnlocked();
 
@@ -119,8 +121,9 @@ const Upload = () => {
       const myTokens = await NFTInstance.myTokens(accounts[0]);
       const getTokenURI = myTokens["tokenURI"].indexOf(tokenURI);
 
-      const _tokenId = myTokens["userTokens"][getTokenURI];
-      const tokenId = ethers.utils.formatEther(_tokenId) * 10 ** 18;
+      const _Id = myTokens["userTokens"][getTokenURI];
+      const _tokenId = ethers.utils.formatEther(_Id) * 10 ** 18;
+      const tokenId = _tokenId.toString();
 
       // create a new token with cid
       await createToken({
@@ -132,11 +135,11 @@ const Upload = () => {
           keywords,
           website,
           description,
-          tokenId: tokenId.toString(),
+          tokenId,
         },
       });
 
-      Router.pushRoute(`/upload/${IpfsHash}/create`);
+      Router.pushRoute(`/upload/${tokenId}/create`);
     }
   };
 

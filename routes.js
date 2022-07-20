@@ -1,5 +1,5 @@
 const routes = require("next-routes")();
 
-routes.add("/upload/:cid/create", "/preview");
+routes.add("/upload/:tokenId/create", "/preview");
 
 module.exports = routes;

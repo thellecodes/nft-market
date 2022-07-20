@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import Image from "next/image";
 import NFTImg from "../images/MaleJapanese.png";
 import { Link } from "../routes";
@@ -7,7 +7,8 @@ import { TOKENS } from "../lib/queries";
 import Loading from "../components/Loading";
 
 const Marketplace = () => {
-  const { data } = useQuery(TOKENS);
+  const [searchString, setSearchString] = useState("");
+  const { data } = useQuery(TOKENS, { variables: { title: searchString } });
 
   if (!data) return <Loading />;
 
@@ -41,6 +42,7 @@ const Marketplace = () => {
                   placeholder="Search for anything..."
                   type="text"
                   name="search"
+                  onChange={(e) => setSearchString(e.target.value)}
                 />
               </htmlFor>
             </div>
@@ -50,7 +52,7 @@ const Marketplace = () => {
             <div className="grid md:grid-cols-3 mt-20 gap-5 md:gap-3">
               {data.tokens.map(({ cid, tokenId, title }, key) => (
                 <div className=" border-black border-2 p-5" {...{ key }}>
-                  <Link href={`/details?id=${tokenId}`}>
+                  <Link href={`/details?tokenId=${tokenId}`}>
                     <a>
                       <div className="h-48 overflow-hidden">
                         <img
