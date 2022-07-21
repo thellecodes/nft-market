@@ -196,6 +196,7 @@ const Preview = () => {
                   <div className="flex mt-6">
                     <div className="w-2/4">
                       <input
+                        disabled={listing}
                         className={`px-3 py-3 w-full border text-sm ${
                           auctionAlert ? "border-red-700 border-2" : ""
                         }`}

@@ -12,6 +12,8 @@ const Marketplace = () => {
 
   if (!data) return <Loading />;
 
+  console.log(data);
+
   return (
     <section id="">
       <div className="nft-container px-5 lg:px-40">
@@ -28,11 +30,11 @@ const Marketplace = () => {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    stroke-width="2"
+                    strokeWidth={2}
                   >
                     <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
@@ -50,36 +52,43 @@ const Marketplace = () => {
 
           {data.tokens ? (
             <div className="grid md:grid-cols-3 mt-20 gap-5 md:gap-3">
-              {data.tokens.map(({ cid, tokenId, title }, key) => (
-                <div className=" border-black border-2 p-5" {...{ key }}>
-                  <Link href={`/details?tokenId=${tokenId}`}>
-                    <a>
-                      <div className="h-48 overflow-hidden">
-                        <img
-                          className="w-full"
-                          src={`https://gateway.pinata.cloud/ipfs/${cid}`}
-                          alt={title}
-                        />
-                      </div>
-                    </a>
-                  </Link>
+              {data.tokens.map(
+                ({ cid, tokenId, title, inAuction, listed }, key) => (
+                  <div className=" border-black border-2 p-5" {...{ key }}>
+                    <Link href={`/details?tokenId=${tokenId}`}>
+                      <a>
+                        <div className="h-48 overflow-hidden">
+                          <img
+                            className="w-full"
+                            src={`https://gateway.pinata.cloud/ipfs/${cid}`}
+                            alt={title}
+                          />
+                        </div>
+                      </a>
+                    </Link>
 
-                  <div className="mt-5">
-                    <span className="font-bold text-2xl capitalize">
-                      {title}
-                    </span>
-                    <span className="block font-bold">0.29 ETH</span>
+                    <div className="mt-5">
+                      <span className="font-bold text-2xl capitalize">
+                        {title}
+                      </span>
+                      <span className="block font-bold">0.29 ETH</span>
+                    </div>
+
+                    <Link
+                      href={{
+                        pathname: `${listed ? "/offer" : "/bid"}`,
+                        query: { tokenId },
+                      }}
+                    >
+                      <a>
+                        <button className="bg-gray-500 block w-full mt-5 hover:bg-gray-400 text-white font-bold py-1 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
+                          {listed ? "Make Offer" : "Place a Bid"}
+                        </button>
+                      </a>
+                    </Link>
                   </div>
-
-                  <Link href={`/bid/${tokenId}`}>
-                    <a>
-                      <button className="bg-gray-500 block w-full mt-5 hover:bg-gray-400 text-white font-bold py-1 px-4 border-b-4 border-gray-700 hover:border-gray-500 rounded">
-                        Place a Bid
-                      </button>
-                    </a>
-                  </Link>
-                </div>
-              ))}
+                )
+              )}
             </div>
           ) : null}
         </div>

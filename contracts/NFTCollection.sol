@@ -181,4 +181,8 @@ contract NFTCollection is ERC721URIStorage {
         nft.owner = nft.currentHighestBidder;
          _transfer(address(this), nft.currentHighestBidder, _tokenId);
     }
+
+    function tokenBalance(uint _tokenId) public view returns (uint){
+        return Exchange[_tokenId].currentHighestBid;
+    }
 }

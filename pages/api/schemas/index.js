@@ -20,6 +20,8 @@ export const typeDefs = gql`
     videoUrl: String
     keywords: String
     website: String
+    inAuction: Boolean
+    listed: Boolean
   }
 
   type Query {
