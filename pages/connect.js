@@ -9,6 +9,9 @@ const Connect = () => {
   const [walletAddress, setSigner] = useState("");
 
   const _connect = async () => {
+    if (!window.ethereum)
+      alert("Please download an Ethereum Wallet to Your Browser to Continue");
+
     setConnecting(true);
 
     if (

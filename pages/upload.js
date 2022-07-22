@@ -4,13 +4,7 @@ import { StopIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Loading from "../components/Loading";
-import {
-  GET_USER,
-  GET_TOKEN,
-  CREATE_TOKEN,
-  UPDATE_TOKEN,
-} from "../lib/queries";
-import NFTCollection from "../contracts/NFTCollection.json";
+import { GET_USER, CREATE_TOKEN } from "../lib/queries";
 import Head from "next/head";
 import axios from "axios";
 import { Router } from "../routes";
@@ -48,6 +42,8 @@ const Upload = () => {
       }
     });
   }, []);
+
+  // TODO: Check if account is in database
 
   useEffect(() => {
     if (userData) {
@@ -136,10 +132,14 @@ const Upload = () => {
           website,
           description,
           tokenId,
+          owner: accounts[0],
         },
       });
 
-      Router.pushRoute(`/upload/${tokenId}/create`);
+      Router.push({
+        pathname: "/preview",
+        query: { tokenId },
+      });
     }
   };
 
@@ -173,11 +173,9 @@ const Upload = () => {
             <form className="w-full  mt-10" {...{ onSubmit }}>
               <div className="flex flex-wrap mb-6 flex-col-reverse lg:flex-row">
                 <div className="w-full px-3">
-                  <label
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                    for="file_input"
-                    htmlFor={`File Name ${fileName ? `: ${fileName}` : null}`}
-                  />
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    {`File Name ${fileName ? `: ${fileName}` : ""}`}
+                  </label>
 
                   <input
                     className="block w-full py-3 px-4 mb-6 border"
@@ -187,11 +185,9 @@ const Upload = () => {
                   />
 
                   <div className="w-full">
-                    <label
-                      className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-first-name"
-                      htmlFor="Title *"
-                    />
+                    <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                      Title *
+                    </label>
 
                     <input
                       className=" block w-full border rounded py-3 px-4 mb-3"
@@ -202,22 +198,15 @@ const Upload = () => {
                   </div>
 
                   <div className="w-full mt-10">
-                    <label
-                      className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-first-name"
-                      htmlFor="Description *"
-                    />
+                    <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                      Description *"
+                    </label>
                     <p className="text-xs italic">
                       The description will be included in the item's detail page
                     </p>
 
                     <div className="mb-6 w-full bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
                       <div className="py-2 px-4 bg-white rounded-t-lg dark:bg-gray-800">
-                        <label
-                          for="comment"
-                          className="sr-only"
-                          htmlFor="Awesome story about your nft art"
-                        />
                         <textarea
                           id="comment"
                           rows="2"
@@ -231,11 +220,9 @@ const Upload = () => {
 
                   <div className="flex flex-wrap -mx-3 mb-6">
                     <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                      <label
-                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-first-name"
-                        htmlFor="Keywords"
-                      />
+                      <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                        Keywords
+                      </label>
                       <input
                         className=" block w-full border rounded py-3 px-4 mb-3"
                         type="text"
@@ -244,11 +231,9 @@ const Upload = () => {
                       />
                     </div>
                     <div className="w-full md:w-1/2 px-3" disabled>
-                      <label
-                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-last-name"
-                        htmlFor="Collections"
-                      />
+                      <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                        Collection
+                      </label>
                       <select
                         disabled
                         className="py-3 px-4 pr-8 rounded shadow leading-tight"
@@ -261,11 +246,10 @@ const Upload = () => {
 
                   <div className="flex flex-wrap -mx-3 mb-6">
                     <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                      <label
-                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-first-name"
-                        htmlFor="Website Url"
-                      />
+                      <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                        Website URL
+                      </label>
+
                       <input
                         className=" block w-full border rounded py-3 px-4 mb-3"
                         type="text"
@@ -275,12 +259,9 @@ const Upload = () => {
                     </div>
 
                     <div className="w-full md:w-1/2 px-3">
-                      <label
-                        className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-first-name"
-                        htmlFor="Creation Video"
-                      />
-
+                      <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                        Creation Video
+                      </label>
                       <input
                         className=" block w-full border rounded py-3 px-4 mb-3"
                         type="text"

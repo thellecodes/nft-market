@@ -24,8 +24,12 @@ const Preview = () => {
   const [auctionToken] = useMutation(AUCTION_TOKEN);
 
   useEffect(() => {
-    getToken({ variables: { tokenId } }); // get token from db
-  }, []);
+    getToken({ variables: { tokenId } }).then((res) => {
+      if (!res.data) {
+        Router.push({ pathname: "/error", msg: "NftF not found" });
+      }
+    }); // get token from db
+  }, [router]);
 
   const onChange = (e) => {
     const price = e.target.value;
@@ -54,7 +58,7 @@ const Preview = () => {
       const trx = await NFTInstance.listNFT(_tokenId, price, { value: price }); // list our nft
       await trx.wait(); // wait for block confirmation
 
-      await listToken({ variables: { tokenId } }); // set listed to true
+      await listToken({ variables: { tokenId, price: listingPrice } }); // set listed to true
 
       Router.push({ pathname: "/details", query: { tokenId } });
     } catch (e) {
@@ -90,22 +94,45 @@ const Preview = () => {
       <Head>
         <title>{data ? data.getToken.title : null} - Preview</title>
       </Head>
-      <section id="details">
-        <div className="nft-container px-5 lg:px-40">
-          <div className="details-container py-32">
-            <div className="grid md:grid-cols-2">
-              <div className="pr-5">
-                <div className="bg-white">
-                  <div className="overflow-hidden shadow-lg">
-                    <img
-                      className="w-full"
-                      src={`https://gateway.pinata.cloud/ipfs/${
-                        data ? data.getToken.cid : null
-                      }`}
-                      alt="Sunset in the mountains"
-                    />
-                    <div className="px-6 py-4">
-                      <div className="flex items-center">
+      {data ? (
+        <section id="details">
+          <div className="nft-container px-5 lg:px-40">
+            <div className="details-container py-32">
+              <div className="grid md:grid-cols-2">
+                <div className="pr-5">
+                  <div className="bg-white">
+                    <div className="overflow-hidden shadow-lg">
+                      <img
+                        className="w-full"
+                        src={`https://gateway.pinata.cloud/ipfs/${data.getToken.cid}`}
+                        alt="Sunset in the mountains"
+                      />
+                      <div className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="mr-4">
+                            <Avvvatars value="Avatar" size={40} />
+                          </div>
+                          <div className="text-sm">
+                            <Link href="/">
+                              <a>
+                                <p className="text-gray-900 leading-none">
+                                  @username
+                                </p>
+                              </a>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 bg-white rounded">
+                  <div className="flex items-center mb-10">
+                    <div className="basis-1/2">
+                      <h1 className="font-bold">{data.getToken.title}</h1>
+                    </div>
+                    <div className="basis-1/2">
+                      <div className="flex items-center flex-row">
                         <div className="mr-4">
                           <Avvvatars value="Avatar" size={40} />
                         </div>
@@ -121,120 +148,95 @@ const Preview = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div className="p-5 bg-white rounded">
-                <div className="flex items-center mb-10">
-                  <div className="basis-1/2">
-                    <h1 className="font-bold">
-                      {data ? data.getToken.title : null}
-                    </h1>
+
+                  <div className="mb-10">
+                    <h2>Description</h2>
+                    <p className="font-normal">
+                      {data.getToken.description}
+                      <span className="float float-right inline-block"></span>
+                    </p>
                   </div>
-                  <div className="basis-1/2">
-                    <div className="flex items-center flex-row">
-                      <div className="mr-4">
-                        <Avvvatars value="Avatar" size={40} />
+
+                  <div className="flex mb-10">
+                    <div className="basis-1/2">
+                      <h3 className="font-bold">Date Added</h3>
+                      <span className="block capitalize">oct 11, 2022</span>
+                    </div>
+                    <div className="basis-1/2">
+                      <h3 className="font-bold">Keywords</h3>
+                      <span className="block capitalize">
+                        {data.getToken.keywords}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="basis-1/2 font-bold text-2xl mb-10">
+                    <div className="flex">
+                      <div className="w-2/4">
+                        <input
+                          disabled={listing}
+                          className={`px-3 py-3 w-full border text-sm ${
+                            listAlert ? "border-red-700 border-2" : ""
+                          }`}
+                          placeholder="Listing price (0.98)"
+                          {...{ onChange }}
+                        />
                       </div>
-                      <div className="text-sm">
-                        <Link href="/">
-                          <a>
-                            <p className="text-gray-900 leading-none">
-                              @username
-                            </p>
-                          </a>
-                        </Link>
+
+                      <div className="w-2/4 flex justify-end">
+                        <button
+                          disabled={listing}
+                          className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
+                          onClick={onList}
+                        >
+                          List My NFT
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex mt-6">
+                      <div className="w-2/4">
+                        <input
+                          disabled={listing}
+                          className={`px-3 py-3 w-full border text-sm ${
+                            auctionAlert ? "border-red-700 border-2" : ""
+                          }`}
+                          placeholder="Auction Price"
+                          onChange={onSetAuctionPrice}
+                        />
+                      </div>
+
+                      <div className="w-2/4 flex justify-end">
+                        <button
+                          disabled={listing}
+                          className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
+                          onClick={onAuction}
+                        >
+                          Auction this NFT
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="mb-10">
-                  <h2>Description</h2>
-                  <p className="font-normal">
-                    {data ? data.getToken.description : null}
-                    <span className="float float-right inline-block"></span>
+              <div className="w-full md:grid md:grid-cols-2 mt-10">
+                <div className="p-5 py-20 bg-white">
+                  <h2 className="mb-5 font-bold text-2xl">
+                    {data.getToken.details} Details
+                  </h2>
+                  <hr />
+                  <p className="mt-5 font-normal text-black">
+                    {data.getToken.description}
                   </p>
                 </div>
 
-                <div className="flex mb-10">
-                  <div className="basis-1/2">
-                    <h3 className="font-bold">Date Added</h3>
-                    <span className="block capitalize">oct 11, 2022</span>
-                  </div>
-                  <div className="basis-1/2">
-                    <h3 className="font-bold">Keywords</h3>
-                    <span className="block capitalize">
-                      {data ? data.getToken.keywords : null}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="basis-1/2 font-bold text-2xl mb-10">
-                  <div className="flex">
-                    <div className="w-2/4">
-                      <input
-                        disabled={listing}
-                        className={`px-3 py-3 w-full border text-sm ${
-                          listAlert ? "border-red-700 border-2" : ""
-                        }`}
-                        placeholder="Listing price (0.98)"
-                        {...{ onChange }}
-                      />
-                    </div>
-
-                    <div className="w-2/4 flex justify-end">
-                      <button
-                        disabled={listing}
-                        className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
-                        onClick={onList}
-                      >
-                        List My NFT
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex mt-6">
-                    <div className="w-2/4">
-                      <input
-                        disabled={listing}
-                        className={`px-3 py-3 w-full border text-sm ${
-                          auctionAlert ? "border-red-700 border-2" : ""
-                        }`}
-                        placeholder="Auction Price"
-                        onChange={onSetAuctionPrice}
-                      />
-                    </div>
-
-                    <div className="w-2/4 flex justify-end">
-                      <button
-                        disabled={listing}
-                        className="bg-gray-800 font-bold text-white py-3 px-4 text-xs whitespace-nowrap"
-                        onClick={onAuction}
-                      >
-                        Auction this NFT
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <div className="pl-5"> </div>
               </div>
-            </div>
-
-            <div className="w-full md:grid md:grid-cols-2 mt-10">
-              <div className="p-5 py-20 bg-white">
-                <h2 className="mb-5 font-bold text-2xl">
-                  {data ? data.getToken.details : null} Details
-                </h2>
-                <hr />
-                <p className="mt-5 font-normal text-black">
-                  {data ? data.getToken.description : null}
-                </p>
-              </div>
-
-              <div className="pl-5"> </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </>
   );
 };

@@ -54,7 +54,7 @@ class Authors extends Component {
           </div>
 
           <div className="flex flex-col items-center h-10">
-            <Image src={Heart} className="w-full" />
+            <Image src={Heart} className="w-full" layout="responsive" />
             <span className="block text-sm">4k</span>
           </div>
         </div>

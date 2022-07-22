@@ -12,27 +12,12 @@ import NFTThree from "../images/UkraineFemale.png";
 
 import Heart from "../images/heart.svg";
 import Share from "../images/share.svg";
+import Loading from "./Loading";
 
-class TAuction extends Component {
-  state = {
-    auctions: [
-      {
-        id: 1,
-        imageURI: NFTOne,
-      },
-      {
-        id: 2,
-        imageURI: NFTImg,
-      },
-      {
-        id: 3,
-        imageURI: NFTThree,
-      },
-    ],
-  };
-
-  AuctionCard = ({ id, imageURI }) => (
-    <SwiperSlide className="border-2 border-black p-5" key={id}>
+const TAuction = ({ data }) => {
+  const AuctionCard = ({ token }, key) => (
+    //  cid, description, inAuction, keywords, listed, owner, title, tokenId, tokenURI,
+    <>
       <div className="">
         <div className="grid grid-cols-2 mb-10">
           <div className="flex items-center">
@@ -43,7 +28,7 @@ class TAuction extends Component {
             <div className="inline">
               <Link href="/details">
                 <a className="ml-2">
-                  <span className="title">Monkey Icon</span>
+                  <span className="title">{token.title}</span>
                 </a>
               </Link>
             </div>
@@ -56,14 +41,14 @@ class TAuction extends Component {
         </div>
       </div>
 
-      <Link href="/details">
+      <Link href={`/details?tokenId=${token.tokenId}`}>
         <a className="">
           <div className="">
-            <div className="h-300 overflow-hidden relative mb-5">
+            <div className="h-80 overflow-hidden relative mb-5">
               <Image
-                src={imageURI}
+                src={`https://gateway.pinata.cloud/ipfs/${token.cid}`}
                 alt="dasf"
-                className="w-full object-cover h-full"
+                layout="fill"
               />
             </div>
 
@@ -96,58 +81,69 @@ class TAuction extends Component {
         </div>
       </div>
 
-      <Link href="/bid">
+      <Link
+        href={{
+          pathname: `${token.listed ? "/offer" : "/bid"}`,
+          query: { tokenId: token.tokenId },
+        }}
+      >
         <a>
           <button className="bg-blue-500 block w-full mt-5 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">
-            Place a Bid
+            {token.listed ? "Make Offer" : "Place a Bid"}
           </button>
         </a>
       </Link>
-    </SwiperSlide>
+    </>
   );
 
-  render() {
-    return (
-      <section id="tauction" className="mb-40">
-        <div className="nft-container px-5 md:px-16 pt-20">
-          <div className="tauction-container py-10">
-            <div className="flex">
-              <div className="w-3/4">
-                <h4 className="text-2xl">Trending</h4>
-                <h3 className="text-2xl font-bold">Auctions</h3>
-                <span className="text-sm">Enjoy the latest hot auctions</span>
-              </div>
-
-              <div className="w-1/3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="h-20 border-2 border-black text-3xl font-bold flex justify-center items-center cursor-pointer">{`<`}</div>
-                  <div className="h-20  bg-black text-white font-bold text-3xl flex justify-center items-center cursor-pointer">{`>`}</div>
-                </div>
-              </div>
+  return (
+    <section id="tauction" className="mb-40">
+      <div className="nft-container px-5 md:px-16 pt-20">
+        <div className="py-10">
+          <div className="flex">
+            <div className="w-3/4">
+              <h4 className="text-2xl">Trending</h4>
+              <h3 className="text-2xl font-bold">Auctions</h3>
+              <span className="text-sm">Enjoy the latest hot auctions</span>
             </div>
 
-            <Swiper
-              breakpoints={{
-                541: {
-                  slidesPerView: 2,
-                  spaceBetween: 10,
-                },
-                769: {
-                  slidesPerView: 3,
-                  spaceBetween: 10,
-                },
-              }}
-              className="mt-14"
-            >
-              {this.state.auctions.map(({ id, imageURI }) =>
-                this.AuctionCard({ id, imageURI })
-              )}
-            </Swiper>
+            <div className="w-1/3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="h-20 border-2 border-black text-3xl font-bold flex justify-center items-center cursor-pointer">{`<`}</div>
+                <div className="h-20  bg-black text-white font-bold text-3xl flex justify-center items-center cursor-pointer">{`>`}</div>
+              </div>
+            </div>
           </div>
+
+          <Swiper
+            breakpoints={{
+              541: {
+                slidesPerView: 2,
+                spaceBetween: 10,
+              },
+              769: {
+                slidesPerView: 3,
+                spaceBetween: 10,
+              },
+            }}
+            className="mt-14"
+          >
+            {data ? (
+              data.tokens.map((token, key) => (
+                <SwiperSlide className="border-2 border-black p-5" {...{ key }}>
+                  <AuctionCard {...{ token }} />
+                </SwiperSlide>
+              ))
+            ) : (
+              <div className="text-center">
+                <Loading />
+              </div>
+            )}
+          </Swiper>
         </div>
-      </section>
-    );
-  }
-}
+      </div>
+    </section>
+  );
+};
 
 export default TAuction;

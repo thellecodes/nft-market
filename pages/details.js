@@ -19,10 +19,14 @@ const Details = () => {
 
   // handle error
   useEffect(() => {
-    getToken({ variables: { tokenId } }); // get token from db
+    getToken({ variables: { tokenId } }).then((res) => {
+      if (!res.data) {
+        Router.push({ pathname: "/error", msg: "NftF not found" });
+      }
+    }); // get token from db
   }, [tokenId]);
 
-  if (!tokenId || loading) return <Loading />;
+  if (!tokenId || loading || !data) return <Loading />;
 
   return (
     <>
@@ -36,13 +40,13 @@ const Details = () => {
               <div className="pr-5">
                 <div className="bg-white">
                   <div className="overflow-hidden shadow-lg">
-                    <img
-                      className="w-full"
-                      src={`https://gateway.pinata.cloud/ipfs/${
-                        data ? data.getToken.cid : ""
-                      }`}
-                      alt="Sunset in the mountains"
-                    />
+                    {data ? (
+                      <img
+                        className="w-full"
+                        src={`https://gateway.pinata.cloud/ipfs/${data.getToken.cid}`}
+                        alt="Sunset in the mountains"
+                      />
+                    ) : null}
                     <div className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="mr-4">
@@ -122,21 +126,24 @@ const Details = () => {
                   <div className="basis-1/2 font-bold text-2xl mb-10">
                     0.98ETH
                   </div>
-                  <div className="basis-1/2 flex items-center">
-                    <Link href="/bid">
-                      <a>
-                        <button className="bg-gray-800 font-bold text-white py-3 px-4 whitespace-nowrap text-sm">
-                          Place Bid
-                        </button>
-                      </a>
-                    </Link>
-                    <Link href="/offer">
-                      <a className="ml-4">
-                        <button className="bg-gray-800 font-bold text-white py-3 px-4 text-sm whitespace-nowrap">
-                          Make Offer
-                        </button>
-                      </a>
-                    </Link>
+                  <div className="basis-1/2 flex items-center justify-end">
+                    {data.getToken.inAuction ? (
+                      <Link href={`/bid?tokenId=${tokenId}`}>
+                        <a>
+                          <button className="bg-gray-800 font-bold text-white py-3 px-4 whitespace-nowrap text-sm">
+                            Place Bid
+                          </button>
+                        </a>
+                      </Link>
+                    ) : (
+                      <Link href={`/offer?tokenId=${tokenId}`}>
+                        <a className="ml-4">
+                          <button className="bg-gray-800 font-bold text-white py-3 px-4 text-sm whitespace-nowrap">
+                            Make Offer
+                          </button>
+                        </a>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>

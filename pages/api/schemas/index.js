@@ -14,7 +14,7 @@ export const typeDefs = gql`
     _id: String
     cid: String
     tokenId: String
-    title: String
+    title: String!
     tokenURI: String
     description: String
     videoUrl: String
@@ -22,13 +22,14 @@ export const typeDefs = gql`
     website: String
     inAuction: Boolean
     listed: Boolean
+    owner: String
   }
 
   type Query {
     getUsers: [User]
     getUser(walletAddress: String!): User
-    getToken(tokenId: String!): Token
-    tokens: [Token]
+    getToken(tokenId: String!): Token!
+    tokens: [Token]!
   }
 
   type Mutation {
@@ -41,9 +42,10 @@ export const typeDefs = gql`
       keywords: String
       website: String
       description: String
+      owner: String
     ): Token
 
-    listToken(tokenId: String): Token
+    listToken(tokenId: String, price: String): Token
 
     auctionToken(tokenId: String): Token
   }
