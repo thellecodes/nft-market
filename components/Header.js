@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Logo from "../images/logo.png";
 import Link from "next/link";
-import { isUnlocked } from "../utils/helpers";
 
 const Header = () => {
   const [toggle, setToggle] = useState(false);
@@ -11,15 +10,6 @@ const Header = () => {
   const onClick = () => {
     setToggle((toggle) => !toggle);
   };
-
-  const detconnect = async () => {
-    const { accounts } = await isUnlocked();
-    if (accounts.length > 0) return setConnected(true);
-  };
-
-  useEffect(() => {
-    detconnect();
-  }, []);
 
   return (
     <header className="py-3 px-3 bg-white">
