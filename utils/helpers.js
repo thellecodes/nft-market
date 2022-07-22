@@ -21,7 +21,7 @@ async function isUnlocked() {
   const contractAbi = NFTCollection.abi;
 
   const NFTInstance = new ethers.Contract(
-    "0x4695B2aEDBd110fE621bEF1d2A7BD776Ea0da6AA",
+    "0xD4264b3490913391Cac07D9e5c91C8602494eA96",
     contractAbi,
     signer
   );
