@@ -1,4 +1,3 @@
-import React, { Component } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import Avvvatars from "avvvatars-react";
 import Image from "next/image";
@@ -6,9 +5,6 @@ import { Link } from "../routes";
 
 /* Images */
 import Logo from "../images/logo.png";
-import NFTImg from "../images/MaleSpanish.png";
-import NFTOne from "../images/ZimbabweFemale.png";
-import NFTThree from "../images/UkraineFemale.png";
 
 import Heart from "../images/heart.svg";
 import Share from "../images/share.svg";
@@ -18,7 +14,7 @@ const TAuction = ({ data }) => {
   const AuctionCard = ({ token }, key) => (
     //  cid, description, inAuction, keywords, listed, owner, title, tokenId, tokenURI,
     <>
-      <div className="">
+      <div id="auction">
         <div className="grid grid-cols-2 mb-10">
           <div className="flex items-center">
             <div className="w-5 h-7">

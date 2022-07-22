@@ -12,6 +12,7 @@ import { ethers } from "ethers";
 import Head from "next/head";
 import { Router } from "../routes";
 import ErrorMsg from "../components/Errormsg";
+import Layout from "../components/Layout";
 
 const Bid = () => {
   const [price, setPrice] = useState("");
@@ -79,7 +80,7 @@ const Bid = () => {
   if (loading && !walletBalance) return <Loading />;
 
   return (
-    <>
+    <Layout>
       <Head>
         <title>{data ? data.getToken.title.toUpperCase() + " Nft" : ""} </title>
       </Head>
@@ -196,7 +197,7 @@ const Bid = () => {
           </div>
         </section>
       ) : null}
-    </>
+    </Layout>
   );
 };
 

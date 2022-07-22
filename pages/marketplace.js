@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import { TOKENS } from "../lib/queries";
 import Loading from "../components/Loading";
 import Head from "next/head";
+import Layout from "../components/Layout";
 
 const Marketplace = () => {
   const [searchString, setSearchString] = useState("");
@@ -12,7 +13,7 @@ const Marketplace = () => {
   if (!data) return <Loading />;
 
   return (
-    <>
+    <Layout>
       <Head>
         <title>Ekolance NFT Markeplace</title>
       </Head>
@@ -90,7 +91,7 @@ const Marketplace = () => {
           </div>
         </div>
       </section>
-    </>
+    </Layout>
   );
 };
 

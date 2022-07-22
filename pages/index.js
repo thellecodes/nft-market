@@ -13,7 +13,7 @@ import { useQuery } from "@apollo/client";
 import { TOKENS } from "../lib/queries";
 
 const NftIndex = () => {
-  const { data, loading, error } = useQuery(TOKENS);
+  const { data, loading } = useQuery(TOKENS);
 
   if (data && data.tokens.length === 0) {
     return (

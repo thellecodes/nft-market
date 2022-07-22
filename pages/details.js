@@ -11,6 +11,7 @@ import { GET_TOKEN } from "../lib/queries";
 import { useLazyQuery } from "@apollo/client";
 import Loading from "../components/Loading";
 import { Router } from "../routes";
+import Layout from "../components/Layout";
 
 const Details = () => {
   const router = useRouter();
@@ -29,7 +30,7 @@ const Details = () => {
   if (!tokenId || loading || !data) return <Loading />;
 
   return (
-    <>
+    <Layout>
       <Head>
         <title>{data ? data.getToken.title : null} - T. Marketplace</title>
       </Head>
@@ -169,7 +170,7 @@ const Details = () => {
           </div>
         </div>
       </section>
-    </>
+    </Layout>
   );
 };
 

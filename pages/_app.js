@@ -4,6 +4,7 @@ import "../css/styles.css";
 import "swiper/css";
 
 const client = new ApolloClient({
+  // uri: "http://localhost:3000/api/graphql",
   uri: "https://nft-market-steel.vercel.app/api/graphql",
   cache: new InMemoryCache(),
 });

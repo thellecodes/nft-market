@@ -41,7 +41,7 @@ const AuctionCard = ({ data }) => {
           </div>
         </div>
 
-        <Link href={`/bid?tokenId=${auction ? auction.tokenId : ""}`}>
+        <Link href={`/details?tokenId=${auction ? auction.tokenId : ""}`}>
           <a>
             <div className="h-80 overflow-hidden">
               <Image
